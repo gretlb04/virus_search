@@ -1,25 +1,35 @@
 import sys
+import os
 from textwrap import wrap
 
 # ---------- FASTA PARSER ----------
 
 def parse_fasta(path):
+    """
+    Yield (id, desc, seq) for each record.
+    id  = first token after '>'
+    desc = rest of header line (may be empty)
+    """
     name = None
+    desc = ""
     seq_chunks = []
     with open(path) as f:
         for line in f:
-            line = line.strip()
+            line = line.rstrip()
             if not line:
                 continue
             if line.startswith(">"):
                 if name is not None:
-                    yield name, "".join(seq_chunks)
-                name = line[1:].split()[0]  # take first token as ID
+                    yield name, desc, "".join(seq_chunks)
+                header = line[1:]
+                parts = header.split(None, 1)
+                name = parts[0]
+                desc = parts[1] if len(parts) > 1 else ""
                 seq_chunks = []
             else:
                 seq_chunks.append(line)
         if name is not None:
-            yield name, "".join(seq_chunks)
+            yield name, desc, "".join(seq_chunks)
 
 # ---------- DNA HELPERS ----------
 
@@ -30,47 +40,26 @@ def revcomp(seq: str) -> str:
 
 # Standard genetic code (nuclear)
 CODON_TABLE = {
-    # Phenylalanine
     "TTT": "F", "TTC": "F",
-    # Leucine
     "TTA": "L", "TTG": "L", "CTT": "L", "CTC": "L", "CTA": "L", "CTG": "L",
-    # Isoleucine
     "ATT": "I", "ATC": "I", "ATA": "I",
-    # Methionine (start)
     "ATG": "M",
-    # Valine
     "GTT": "V", "GTC": "V", "GTA": "V", "GTG": "V",
-    # Serine
     "TCT": "S", "TCC": "S", "TCA": "S", "TCG": "S", "AGT": "S", "AGC": "S",
-    # Proline
     "CCT": "P", "CCC": "P", "CCA": "P", "CCG": "P",
-    # Threonine
     "ACT": "T", "ACC": "T", "ACA": "T", "ACG": "T",
-    # Alanine
     "GCT": "A", "GCC": "A", "GCA": "A", "GCG": "A",
-    # Tyrosine
     "TAT": "Y", "TAC": "Y",
-    # Histidine
     "CAT": "H", "CAC": "H",
-    # Glutamine
     "CAA": "Q", "CAG": "Q",
-    # Asparagine
     "AAT": "N", "AAC": "N",
-    # Lysine
     "AAA": "K", "AAG": "K",
-    # Aspartic acid
     "GAT": "D", "GAC": "D",
-    # Glutamic acid
     "GAA": "E", "GAG": "E",
-    # Cysteine
     "TGT": "C", "TGC": "C",
-    # Tryptophan
     "TGG": "W",
-    # Arginine
     "CGT": "R", "CGC": "R", "CGA": "R", "CGG": "R", "AGA": "R", "AGG": "R",
-    # Glycine
     "GGT": "G", "GGC": "G", "GGA": "G", "GGG": "G",
-    # Stops
     "TAA": "*", "TAG": "*", "TGA": "*",
 }
 
@@ -85,7 +74,7 @@ def translate_nt(seq_nt: str) -> str:
 # ---------- ORF FINDER ----------
 
 def longest_orf_aa(nt_seq: str, min_aa_len: int = 0) -> str:
-    """Return the longest AA ORF across 6 frames. Split on '*' (stops)."""
+    """Return the longest AA ORF across 6 frames (no frame metadata, just sequence)."""
     nt_seq = nt_seq.upper().replace("U", "T")
     best_orf = ""
 
@@ -107,12 +96,23 @@ def main():
     in_fa = sys.argv[1]
     out_fa = sys.argv[2]
 
+    # Run ID from file name, e.g. SRR6823454.rdrp1.mu.fa -> SRR6823454
+    base = os.path.basename(in_fa)
+    run_id = base.split(".")[0]  # everything before first dot
+
     with open(out_fa, "w") as out:
-        for name, nt_seq in parse_fasta(in_fa):
-            orf = longest_orf_aa(nt_seq, min_aa_len=50)  # adjust length cutoff if you like
+        for name, desc, nt_seq in parse_fasta(in_fa):
+            orf = longest_orf_aa(nt_seq, min_aa_len=50)  # tweak cutoff if you want
             if not orf:
                 continue
-            out.write(f">{name}\n")
+            orf_len = len(orf)
+            # Unique ID: runID|contigID|longestORF
+            new_id = f"{run_id}|{name}|longestORF"
+            # Keep original description as a comment-ish tail
+            header_desc = f"lenAA={orf_len}"
+            if desc:
+                header_desc += f" original={desc}"
+            out.write(f">{new_id} {header_desc}\n")
             for chunk in wrap(orf, 60):
                 out.write(chunk + "\n")
 
