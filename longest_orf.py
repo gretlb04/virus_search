@@ -38,7 +38,6 @@ _complement = str.maketrans("ACGTacgtnN", "TGCAtgcanN")
 def revcomp(seq: str) -> str:
     return seq.translate(_complement)[::-1]
 
-# Standard genetic code (nuclear)
 CODON_TABLE = {
     "TTT": "F", "TTC": "F",
     "TTA": "L", "TTG": "L", "CTT": "L", "CTC": "L", "CTA": "L", "CTG": "L",
@@ -74,7 +73,6 @@ def translate_nt(seq_nt: str) -> str:
 # ---------- ORF FINDER ----------
 
 def longest_orf_aa(nt_seq: str, min_aa_len: int = 0) -> str:
-    """Return the longest AA ORF across 6 frames (no frame metadata, just sequence)."""
     nt_seq = nt_seq.upper().replace("U", "T")
     best_orf = ""
 
@@ -96,19 +94,18 @@ def main():
     in_fa = sys.argv[1]
     out_fa = sys.argv[2]
 
-    # Run ID from file name, e.g. SRR6823454.rdrp1.mu.fa -> SRR6823454
     base = os.path.basename(in_fa)
-    run_id = base.split(".")[0]  # everything before first dot
+    run_id = base.split(".")[0]  # e.g. SRR6823443
 
     with open(out_fa, "w") as out:
-        for name, desc, nt_seq in parse_fasta(in_fa):
-            orf = longest_orf_aa(nt_seq, min_aa_len=50)  # tweak cutoff if you want
+        for idx, (name, desc, nt_seq) in enumerate(parse_fasta(in_fa), start=1):
+            orf = longest_orf_aa(nt_seq, min_aa_len=50)
             if not orf:
                 continue
             orf_len = len(orf)
-            # Unique ID: runID|contigID|longestORF
-            new_id = f"{run_id}|{name}|longestORF"
-            # Keep original description as a comment-ish tail
+            contig_label = f"contig{idx:04d}"  # contig0001, contig0002, ...
+            # NEW: guaranteed-unique ID
+            new_id = f"{run_id}|{contig_label}|{name}|longestORF"
             header_desc = f"lenAA={orf_len}"
             if desc:
                 header_desc += f" original={desc}"
@@ -118,3 +115,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
