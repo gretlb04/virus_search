@@ -1,0 +1,12 @@
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823454.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823453.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823452.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823448.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823446.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823444.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823447.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823451.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823443.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823445.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823450.rdrp1.mu.fa
+https://s3.amazonaws.com/lovelywater2/assembly/micro/rdrp1/SRR6823449.rdrp1.mu.fa
